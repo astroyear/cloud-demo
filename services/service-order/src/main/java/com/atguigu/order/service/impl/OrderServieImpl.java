@@ -1,6 +1,7 @@
 package com.atguigu.order.service.impl;
 
 import com.atguigu.order.bean.Order;
+import com.atguigu.order.feign.ProductFeignClient;
 import com.atguigu.order.service.OrderService;
 import com.atguigu.product.bean.Product;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.client.loadbalancer.LoadBalancerClient;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -25,6 +27,8 @@ public class OrderServieImpl implements OrderService {
     RestTemplate restTemplate;
     @Autowired
     LoadBalancerClient loadBalancerClient;
+    @Autowired
+    ProductFeignClient productFeignClient;
 
     @Override
     public Order createOrder(Long productId, Long userId) {
@@ -34,7 +38,9 @@ public class OrderServieImpl implements OrderService {
         order.setNickName("zhangsan");
         order.setAddress("home");
 
-        Product product = getProductFromRemoteWithLoaderBalancerAnnotation(productId);
+//        Product product = getProductFromRemoteWithLoaderBalancerAnnotation(productId);  //硬编码，用RestTemplate完成远程调用
+        Product product = productFeignClient.getProductById(productId);
+
         order.setProductList(Arrays.asList(product));
         order.setTotalAmount(product.getPrice().multiply(new BigDecimal(product.getNum())));
         return order;
