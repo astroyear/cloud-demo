@@ -1,5 +1,7 @@
 package com.atguigu.order.service.impl;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.atguigu.order.bean.Order;
 import com.atguigu.order.feign.ProductFeignClient;
 import com.atguigu.order.service.OrderService;
@@ -30,6 +32,7 @@ public class OrderServieImpl implements OrderService {
     @Autowired
     ProductFeignClient productFeignClient;
 
+    @SentinelResource(value = "createOrder", blockHandler = "createOrderFallback")
     @Override
     public Order createOrder(Long productId, Long userId) {
         Order order = new Order();
@@ -43,6 +46,20 @@ public class OrderServieImpl implements OrderService {
 
         order.setProductList(Arrays.asList(product));
         order.setTotalAmount(product.getPrice().multiply(new BigDecimal(product.getNum())));
+        return order;
+    }
+
+    //sentinel关于该函数调用的兜底回调
+    public Order createOrderFallback(Long productId, Long userId, BlockException e) {
+        if (e == null) {
+            return null;
+        }
+        Order order = new Order();
+        order.setId(0L);
+        order.setTotalAmount(new BigDecimal("0"));
+        order.setUserId(userId);
+        order.setNickName("未知用户");
+        order.setAddress("异常信息：" + e.getClass());
         return order;
     }
 

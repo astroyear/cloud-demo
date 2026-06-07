@@ -11,6 +11,11 @@ spring:
             logger-level: full
             connect-timeout: 3000
             read-timeout: 5000
+    sentinel:
+      transport:
+        dashboard: localhost:9999
+      eager: true
+      web-context-unify: false
 #            request-interceptors:
 #              - com.atguigu.order.interceptor.XTokenRequestInterceptor
 #            retryer: feign.retryer.Default
